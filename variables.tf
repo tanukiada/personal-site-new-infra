@@ -17,3 +17,8 @@ variable "nc_client_ip" {
   description = "name cheap ip for client"
   type = string
 }
+
+variable "do_token" {
+  description = "digital ocean token"
+  type = string
+}

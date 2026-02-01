@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    namecheap = {
-      source = "namecheap/namecheap"
-      version = ">= 2.0.0"
-    }
-  }
-}
-
 # name cheap api credentials
 provider "namecheap" {
   user_name = var.nc_username
@@ -23,6 +14,6 @@ resource "namecheap_domain_records" "adachan-moe" {
   record {
     hostname = "@"
     type = "A"
-    address = "178.156.200.193"
+    address = digitalocean_droplet.web.ipv4_address
   }
 }
