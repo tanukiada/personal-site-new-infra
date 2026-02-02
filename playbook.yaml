@@ -1,6 +1,5 @@
 - name: site deployment
   hosts: myhosts
-  
   tasks:
     - name: Perform a dist-upgrade.
       ansible.builtin.apt:
@@ -20,7 +19,59 @@
     - name: Remove dependencies that are no longer required.
       ansible.builtin.apt:
         autoremove: yes
-    - name: Install caddy
-      ansible.builtin.apt
-        name: caddy
+
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
         state: present
+
+    - name: Install certbot
+      community.general.snap:
+        name: certbot
+        classic: true
+
+    - name: pull repo for site
+      ansible.builtin.git:
+        repo: https://github.com/tanukiada/personal-site-new.git
+        dest: /tmp/checkout
+        single_branch: yes
+        version: main
+
+    - name: move nginx file
+      ansible.builtin.copy:
+        src: /tmp/checkout/nginx.conf
+        dest: /etc/nginx/sites-available/adachan.conf
+        remote_src: true
+
+    - name: symlink nginx conf
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/adachan.conf
+        dest: /etc/nginx/sites-enabled/adachan.conf
+        owner: root
+        group: root
+        state: link
+
+    - name: move nginx file
+      ansible.builtin.copy:
+        src: /tmp/checkout/
+        dest: /var/www/html/
+        remote_src: true
+
+    - name: delete nginx conf from root dir
+      ansible.builtin.file:
+        path: /var/www/html/nginx.conf
+        state: absent
+
+    - name: delete default index
+      ansible.builtin.file:
+        path: /var/www/html/index.nginx-debian.html
+        state: absent
+
+    - name: install cert
+      ansible.builtin.command: certbot -n --agree-tos --domains adachan.moe --nginx
+
+    - name: ensure nginx is running
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
