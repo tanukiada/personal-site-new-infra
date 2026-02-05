@@ -25,6 +25,15 @@
         name: nginx
         state: present
 
+    - name: Install nvm
+      ansible.builtin.command: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+
+    - name: Refresh shell
+      ansible.builtin.command: \. "$HOME/.nvm/nvm.sh"
+
+    - name: install node
+      ansible.builtin.command: nvm install node
+
     - name: Install certbot
       community.general.snap:
         name: certbot
@@ -51,7 +60,7 @@
         group: root
         state: link
 
-    - name: move nginx file
+    - name: move site files
       ansible.builtin.copy:
         src: /tmp/checkout/
         dest: /var/www/html/
@@ -73,5 +82,15 @@
     - name: ensure nginx is running
       systemd:
         name: nginx
+        state: started
+        enabled: yes
+
+    - name: install packages for site
+      community.general.npm:
+        path: /var/www/html
+
+    - name: start nodejs
+      systemd:
+        name: nodejs
         state: started
         enabled: yes
